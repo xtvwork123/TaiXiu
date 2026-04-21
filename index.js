@@ -2,29 +2,27 @@ let balance = 0;
 let currentBet = 0;
 let userSide = '';
 let pnl = 0;
+let round = 0;
+let history = [];
 
-// Bet is considered "too high" if it's >= 50% of balance
 const HIGH_BET_THRESHOLD = 0.5;
 
 function fmt(n) {
-  return '₫' + n.toLocaleString('vi-VN');
+  return '₫' + Math.abs(n).toLocaleString('vi-VN');
 }
 
 function updateUI() {
   document.getElementById('balance').textContent = fmt(balance);
   document.getElementById('betDisplay').textContent = fmt(currentBet);
   const pnlEl = document.getElementById('pnl');
-  pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmt(pnl);
+  pnlEl.textContent = (pnl >= 0 ? '+' : '-') + fmt(pnl);
   pnlEl.className = 'wallet-val' + (pnl > 0 ? ' green' : pnl < 0 ? ' red' : '');
 }
 
 function deposit() {
   const val = parseInt(document.getElementById('depositInput').value);
   const msg = document.getElementById('depMsg');
-  if (!val || val < 1000) {
-    msg.textContent = 'Enter at least ₫1,000';
-    return;
-  }
+  if (!val || val < 1000) { msg.textContent = 'Enter at least ₫1,000'; return; }
   balance += val;
   document.getElementById('depositInput').value = '';
   msg.textContent = fmt(val) + ' deposited!';
@@ -33,9 +31,9 @@ function deposit() {
 }
 
 function clearChips() {
-  ['chip1k', 'chip5k', 'chip10k', 'chip50k', 'chipAll'].forEach(id => {
-    document.getElementById(id).classList.remove('active');
-  });
+  ['chip1k', 'chip5k', 'chip10k', 'chip50k', 'chipAll'].forEach(id =>
+    document.getElementById(id).classList.remove('active')
+  );
 }
 
 function setBet(amount) {
@@ -81,27 +79,49 @@ function isHighBet() {
   return balance > 0 && (currentBet / balance) >= HIGH_BET_THRESHOLD;
 }
 
+function addHistoryRow(entry) {
+  const empty = document.getElementById('historyEmpty');
+  const list  = document.getElementById('historyList');
+  empty.style.display = 'none';
+
+  const row = document.createElement('div');
+  row.className = 'history-row';
+  row.innerHTML = `
+    <span class="h-round">#${entry.round}</span>
+    <div class="h-dice">
+      <div class="h-die">${entry.d1}</div>
+      <div class="h-die">${entry.d2}</div>
+      <div class="h-die">${entry.d3}</div>
+    </div>
+    <span class="h-sum">${entry.sum}</span>
+    <span class="h-badge ${entry.result.toLowerCase()}">${entry.result === 'Tai' ? 'Tài' : 'Xỉu'}</span>
+    <span class="h-choice">
+      <span class="dot ${entry.choice.toLowerCase()}"></span>
+      ${entry.choice === 'Tai' ? 'Tài' : 'Xỉu'}
+    </span>
+    <span class="h-spacer"></span>
+    <span class="h-amount ${entry.won ? 'win' : 'lose'}">
+      ${entry.won ? '+' : '-'}${fmt(entry.bet)}
+    </span>
+  `;
+  list.prepend(row);
+}
+
+function clearHistory() {
+  history = [];
+  document.getElementById('historyList').innerHTML = '';
+  document.getElementById('historyEmpty').style.display = '';
+}
+
 function roll() {
   const badge = document.getElementById('resultBadge');
-  const msg = document.getElementById('outcomeMsg');
+  const msg   = document.getElementById('outcomeMsg');
   badge.className = 'result-badge';
-  msg.className = 'outcome-msg';
+  msg.className   = 'outcome-msg';
 
-  if (balance === 0) {
-    msg.textContent = 'Deposit funds to play!';
-    msg.className = 'outcome-msg show warn';
-    return;
-  }
-  if (currentBet === 0) {
-    msg.textContent = 'Set a bet amount first!';
-    msg.className = 'outcome-msg show warn';
-    return;
-  }
-  if (!userSide) {
-    msg.textContent = 'Choose Tài or Xỉu first!';
-    msg.className = 'outcome-msg show warn';
-    return;
-  }
+  if (balance === 0)   { msg.textContent = 'Deposit funds to play!';     msg.className = 'outcome-msg show warn'; return; }
+  if (currentBet === 0){ msg.textContent = 'Set a bet amount first!';     msg.className = 'outcome-msg show warn'; return; }
+  if (!userSide)        { msg.textContent = 'Choose Tài or Xỉu first!'; msg.className = 'outcome-msg show warn'; return; }
 
   ['d1', 'd2', 'd3'].forEach(id => {
     const d = document.getElementById(id);
@@ -114,7 +134,6 @@ function roll() {
     let r1, r2, r3, sum, result;
 
     if (isHighBet()) {
-      // Force a loss: pick dice that land on the opposite side
       const forcedSide = userSide === 'Tai' ? 'Xiu' : 'Tai';
       do {
         r1 = Math.floor(Math.random() * 6) + 1;
@@ -140,17 +159,21 @@ function roll() {
     badge.className = 'result-badge show ' + result.toLowerCase();
 
     const won = userSide === result;
+    round++;
+
     if (won) {
       balance += currentBet;
-      pnl += currentBet;
+      pnl     += currentBet;
       msg.textContent = '✦ Thắng! +' + fmt(currentBet);
-      msg.className = 'outcome-msg show win';
+      msg.className   = 'outcome-msg show win';
     } else {
       balance -= currentBet;
-      pnl -= currentBet;
+      pnl     -= currentBet;
       msg.textContent = '✦ Thua! -' + fmt(currentBet);
-      msg.className = 'outcome-msg show lose';
+      msg.className   = 'outcome-msg show lose';
     }
+
+    addHistoryRow({ round, d1: r1, d2: r2, d3: r3, sum, result, choice: userSide, bet: currentBet, won });
 
     currentBet = 0;
     clearChips();
@@ -158,7 +181,7 @@ function roll() {
     if (balance === 0) {
       setTimeout(() => {
         msg.textContent = 'Out of funds — deposit to continue!';
-        msg.className = 'outcome-msg show warn';
+        msg.className   = 'outcome-msg show warn';
       }, 600);
     }
 
