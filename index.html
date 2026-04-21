@@ -80,6 +80,17 @@
     <button class="roll-btn" onclick="roll()">ROLL</button>
     <div class="outcome-msg" id="outcomeMsg"></div>
 
+    <div class="divider-line"></div>
+
+    <div class="history-section">
+      <div class="history-header">
+        <span class="history-title">Bet History</span>
+        <button class="clear-btn" onclick="clearHistory()">Clear</button>
+      </div>
+      <div class="history-empty" id="historyEmpty">No bets yet — start rolling!</div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
   </div>
   <script src="index.js"></script>
 </body>
