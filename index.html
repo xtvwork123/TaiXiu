@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tài Xỉu</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="root">
+
+    <div class="header">
+      <p class="title">Tài Xỉu</p>
+      <p class="subtitle">Three dice · Under / Over 10</p>
+    </div>
+
+    <div class="wallet-bar">
+      <div class="wallet-section">
+        <span class="wallet-lbl">Balance</span>
+        <span class="wallet-val" id="balance">₫0</span>
+      </div>
+      <div class="wallet-divider"></div>
+      <div class="wallet-section">
+        <span class="wallet-lbl">Current bet</span>
+        <span class="wallet-val" id="betDisplay">₫0</span>
+      </div>
+      <div class="wallet-divider"></div>
+      <div class="wallet-section">
+        <span class="wallet-lbl">Net P&L</span>
+        <span class="wallet-val" id="pnl">₫0</span>
+      </div>
+    </div>
+
+    <div class="deposit-row">
+      <input type="number" id="depositInput" placeholder="Deposit amount..." min="1000" step="1000"/>
+      <button class="dep-btn" onclick="deposit()">+ Deposit</button>
+    </div>
+    <div class="dep-msg" id="depMsg"></div>
+
+    <div class="divider-line"></div>
+
+    <div class="bet-section">
+      <span class="bet-label-row">Quick bet</span>
+      <div class="chip-row">
+        <div class="chip" id="chip1k"  onclick="setBet(1000)">1k</div>
+        <div class="chip" id="chip5k"  onclick="setBet(5000)">5k</div>
+        <div class="chip" id="chip10k" onclick="setBet(10000)">10k</div>
+        <div class="chip" id="chip50k" onclick="setBet(50000)">50k</div>
+        <div class="chip" id="chipAll" onclick="setBetAll()">ALL</div>
+      </div>
+      <div class="custom-bet-row">
+        <input type="number" id="customBet" placeholder="Custom bet amount..." min="1" step="1000"/>
+        <button class="set-btn" onclick="setCustomBet()">Set</button>
+      </div>
+    </div>
+
+    <div class="bet-choice-row">
+      <button class="bet-btn" id="btnXiu" onclick="chooseSide('Xiu')">
+        <span class="bl">Xỉu</span>≤ 10
+      </button>
+      <button class="bet-btn" id="btnTai" onclick="chooseSide('Tai')">
+        <span class="bl">Tài</span>≥ 11
+      </button>
+    </div>
+
+    <div class="dice-row">
+      <div class="die" id="d1">–</div>
+      <div class="die" id="d2">–</div>
+      <div class="die" id="d3">–</div>
+    </div>
+
+    <div class="sum-area">
+      <span class="sum-lbl">Total</span>
+      <span class="sum-num" id="sumNum">–</span>
+    </div>
+
+    <div class="result-badge" id="resultBadge"></div>
+    <button class="roll-btn" onclick="roll()">ROLL</button>
+    <div class="outcome-msg" id="outcomeMsg"></div>
+
+  </div>
+  <script src="index.js"></script>
+</body>
+</html>
