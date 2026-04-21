@@ -3,6 +3,9 @@ let currentBet = 0;
 let userSide = '';
 let pnl = 0;
 
+// Bet is considered "too high" if it's >= 50% of balance
+const HIGH_BET_THRESHOLD = 0.5;
+
 function fmt(n) {
   return '₫' + n.toLocaleString('vi-VN');
 }
@@ -74,6 +77,10 @@ function chooseSide(c) {
   document.getElementById('btnXiu').className = 'bet-btn' + (c === 'Xiu' ? ' active-xiu' : '');
 }
 
+function isHighBet() {
+  return balance > 0 && (currentBet / balance) >= HIGH_BET_THRESHOLD;
+}
+
 function roll() {
   const badge = document.getElementById('resultBadge');
   const msg = document.getElementById('outcomeMsg');
@@ -104,17 +111,31 @@ function roll() {
   });
 
   setTimeout(() => {
-    const r1 = Math.floor(Math.random() * 6) + 1;
-    const r2 = Math.floor(Math.random() * 6) + 1;
-    const r3 = Math.floor(Math.random() * 6) + 1;
-    const sum = r1 + r2 + r3;
+    let r1, r2, r3, sum, result;
+
+    if (isHighBet()) {
+      // Force a loss: pick dice that land on the opposite side
+      const forcedSide = userSide === 'Tai' ? 'Xiu' : 'Tai';
+      do {
+        r1 = Math.floor(Math.random() * 6) + 1;
+        r2 = Math.floor(Math.random() * 6) + 1;
+        r3 = Math.floor(Math.random() * 6) + 1;
+        sum = r1 + r2 + r3;
+        result = sum <= 10 ? 'Xiu' : 'Tai';
+      } while (result !== forcedSide);
+    } else {
+      r1 = Math.floor(Math.random() * 6) + 1;
+      r2 = Math.floor(Math.random() * 6) + 1;
+      r3 = Math.floor(Math.random() * 6) + 1;
+      sum = r1 + r2 + r3;
+      result = sum <= 10 ? 'Xiu' : 'Tai';
+    }
 
     document.getElementById('d1').textContent = r1;
     document.getElementById('d2').textContent = r2;
     document.getElementById('d3').textContent = r3;
     document.getElementById('sumNum').textContent = sum;
 
-    const result = sum <= 10 ? 'Xiu' : 'Tai';
     badge.textContent = result === 'Tai' ? 'Tài' : 'Xỉu';
     badge.className = 'result-badge show ' + result.toLowerCase();
 
